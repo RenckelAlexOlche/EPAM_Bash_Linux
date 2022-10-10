@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# A. Create a script that uses the following keys:
+# 1. When starting without parameters, it will display a list of possible keys and their  description+
+# 2. The --all key displays the IP addresses and symbolic names of all hosts in the current subnet+  
+# 3. The --target key displays a list of open system TCP ports.The code that performs the functionality+ 
+# of each of the subtasks must be placed in a separate function+
+
+
+ping_curr_subN() {
+	nmap -n -sP 192.168.1.0/24 > ip_logs
+	
+}
+scan_ports() {
+	nmap -p- 192.168.1.1 > ports_logs
+	nmap -p- 127.0.0.1 >> ports_logs
+}
+
+default=true
+
+
+for arg; do
+	case "$arg" in
+		--all)
+			ping_curr_subN 
+			default=false
+			;;
+		--target) 
+			scan_ports
+			default=false
+			;;
+		*) echo "ERROR invalid input" ;;
+	esac
+done
+
+
+if $default ; then
+	echo "--all     do something"
+	echo "--target  do another thing"	
+fi
