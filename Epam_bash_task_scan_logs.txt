@@ -1,0 +1,53 @@
+#!/bin/bash
+
+
+
+#B. Using Apache log example create a script to answer the following questions:
+#1. From which ip were the most requests?+
+#2. What is the most requested page?+ 
+#3. How many requests were there from each ip?+ 
+#4. What non-existent pages were clients referred to? 
+#5. What time did site get the most requests? 
+#6. What search bots have accessed the site? (UA + IP)
+
+
+
+
+#1 
+awk '{ print $0  }' example_logs | grep -oP '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | sort -n | uniq -c | sort -nr | head -1 > result_logs
+awk '{ new_var="1) the most requested ip: "$2; print new_var }' result_logs > ip_counter
+
+
+#2
+awk '{ print $0  }' example_logs | grep -oP ' \/[^\.]*\.html' | sort | uniq -c | sort -nr | head -1 > result_logs
+awk '{ new_var="2) the most requested page: "$2; print new_var }' result_logs >> ip_counter
+
+#3
+echo "3)" >> ip_counter
+printf "Count   IP\n" >> ip_counter
+awk '{ print $0  }' example_logs | grep -oP '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}' | sort -n | uniq -c | sort -nr >> ip_counter
+sed -n "/ 404 /p" example_logs > result_logs
+
+#4
+echo "4)" >> ip_counter
+awk '{ print $0  }' example_logs | grep -oP '(GET|POST|PUT|DELETE) .* 404' >> ip_counter
+
+#5
+
+awk '{ print $0  }' example_logs | grep -oP '\[[^\[]*\+[^\[]*\]' > result_logs 
+sed -ie 's/:/ /g' result_logs 
+awk '{ print $2 }' result_logs | sort | uniq -c | sort -nr | head -1 > result_logs 
+awk '{ new_var="5) the most requested time: "$2; print new_var  }' result_logs >> ip_counter
+
+
+#6
+
+sed -n '/ [^ ]*[Bb][Oo][Tt]\/.*;/p' example_logs > result_logs 
+awk '{ print $0  }' example_logs | grep -oP '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}.* [^ ]*[Bb][Oo][Tt]\/.*;' > result_logs
+echo "6)" >> ip_counter
+awk '{ print $1" "$NF  }' result_logs | sort -n  | uniq | sort -nr >> ip_counter
+
+
+
+# Remove the leftover files
+rm result_logs
